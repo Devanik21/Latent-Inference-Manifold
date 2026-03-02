@@ -1178,14 +1178,14 @@ with tab7:
 
     # ─── SECTION D: SKILL MEME GRID ──────────────────────────────────────────
     st.markdown("### 🎨 D — Skill Meme Grid")
-    if dsl_skills:
+    if latent_skills:
         # D1 — Skill Meme Grid (pixel mosaic)
         st.markdown("##### D1 · Skill Meme Grid")
-        n_skills = len(dsl_skills)
+        n_skills = len(latent_skills)
         grid_cols = max(4, min(8, n_skills))
         grid_rows = math.ceil(n_skills / grid_cols)
         meme_grid = np.zeros((grid_rows, grid_cols, 3))
-        for idx, sk in enumerate(dsl_skills):
+        for idx, sk in enumerate(latent_skills):
             r, c = divmod(idx, grid_cols)
             usage = sk.get("usage_count", 0)
             hue   = (idx / max(n_skills, 1)) % 1.0
@@ -1197,7 +1197,7 @@ with tab7:
         ax.set_facecolor(_BG)
         ax.imshow(meme_grid, interpolation="nearest", aspect="auto")
         ax.set_xticks(range(grid_cols))
-        ax.set_xticklabels([dsl_skills[i]["name"][:8] if i < n_skills else "" for i in range(grid_cols)],
+        ax.set_xticklabels([latent_skills[i]["name"][:8] if i < n_skills else "" for i in range(grid_cols)],
                            rotation=45, ha="right", color="#94a3b8", fontsize=7)
         ax.set_yticks([]); fig.patch.set_facecolor(_BG)
         for sp in ax.spines.values(): sp.set_visible(False)
@@ -1207,8 +1207,8 @@ with tab7:
         # D2 — Skill Reuse Heatmap
         with colD2:
             st.markdown("##### D2 · Skill Usage Heatmap")
-            usage_vals = [sk.get("usage_count", 0) for sk in dsl_skills]
-            names_d    = [sk["name"][:12] for sk in dsl_skills]
+            usage_vals = [sk.get("usage_count", 0) for sk in latent_skills]
+            names_d    = [sk["name"][:12] for sk in latent_skills]
             fig, ax    = _obs_fig(5, 4)
             cmap_d2    = plt.get_cmap("YlOrRd")
             max_u      = max(usage_vals) if max(usage_vals) > 0 else 1
@@ -1222,8 +1222,8 @@ with tab7:
         # D3 — Success Rate Radar
         with colD3:
             st.markdown("##### D3 · Success Rate Radar")
-            srates = [sk.get("success_rate", 0) for sk in dsl_skills[:8]]
-            snames = [sk["name"][:10] for sk in dsl_skills[:8]]
+            srates = [sk.get("success_rate", 0) for sk in latent_skills[:8]]
+            snames = [sk["name"][:10] for sk in latent_skills[:8]]
             N_r    = len(srates)
             if N_r >= 3:
                 angles_r = np.linspace(0, 2*np.pi, N_r, endpoint=False).tolist()
@@ -1245,7 +1245,7 @@ with tab7:
         with colD4:
             st.markdown("##### D4 · Discovery Timeline")
             fig, ax = _obs_fig(5, 3.5)
-            for idx2, sk in enumerate(dsl_skills):
+            for idx2, sk in enumerate(latent_skills):
                 origc = "#6d28d9" if sk.get("origin","") != "BUILTIN" else "#1e40af"
                 ax.scatter(idx2, sk.get("usage_count", 0), color=origc, s=100,
                            edgecolors="#1c2133", linewidths=0.5, zorder=4)
