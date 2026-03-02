@@ -371,13 +371,13 @@ class EpisodeRecord:
     task_id: str
     task_fingerprint: str
     priors_used: List[str]
-    winning_program: Optional[str]  # Human-readable string or z_vector summary
-    winning_z: Optional[List[float]] = None # Discovered latent vector
+    winning_program: Optional[str] # Human-readable string or z_vector summary
     causal_label: str          # "CAUSAL_LAW" | "COINCIDENCE" | "UNKNOWN"
     rounds_to_solve: int
     budget_used: int
     surprise_arc: List[float]  # the full surprise history for this task
     verdict: str               # "solved" | "unknown" | "timeout"
+    winning_z: Optional[List[float]] = None # Discovered latent vector
     embedding: Optional[np.ndarray] = None   # for nearest-neighbor retrieval
     created_at: float = field(default_factory=time.time)
 
