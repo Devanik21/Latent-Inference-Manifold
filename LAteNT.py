@@ -288,7 +288,7 @@ with st.sidebar:
     }
     chosen_label = st.selectbox("Difficulty", list(level_options.keys()), index=0)
     chosen_level = level_options[chosen_label]
-    run_btn = st.button("⚡ Run Council", width='stretch', type="primary")
+    solve_btn = st.button("⚡ Run Council", width='stretch', type="primary")
 
     st.divider()
     st.markdown("**Session Stats**")
