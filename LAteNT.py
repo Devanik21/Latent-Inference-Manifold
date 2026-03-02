@@ -149,8 +149,8 @@ def _init():
         st.session_state.stat_skills = 15
     if "stat_gen_series" not in st.session_state:
         st.session_state.stat_gen_series = []
-    if "stat_dsl_skills" not in st.session_state:
-        st.session_state.stat_dsl_skills = []
+    if "stat_latent_skills" not in st.session_state:
+        st.session_state.stat_latent_skills = []
     if "stat_meta_learner" not in st.session_state:
         st.session_state.stat_meta_learner = {}
     if "export_logs" not in st.session_state:
@@ -1941,7 +1941,7 @@ with tab7:
 
     # Compute composite metrics from live data
     solve_rate      = (st.session_state.n_solved / max(st.session_state.n_run, 1))
-    skill_reuse     = min(sum(s.get("usage_count",0) for s in dsl_skills) / max(len(dsl_skills)*2, 1), 1.0)
+    skill_reuse     = min(sum(s.get("usage_count",0) for s in latent_skills) / max(len(latent_skills)*2, 1), 1.0)
     surprise_decay  = max(0, 1.0 - (surprise[-1] if surprise else 1.0) / (surprise[0] if surprise and surprise[0] > 0 else 1.0))
     causal_rate     = n_causal / max(len([h for h in hypotheses if h.get("causal_verdict")]), 1)
     hypothesis_exp  = min(len(hypotheses) / 50.0, 1.0)
