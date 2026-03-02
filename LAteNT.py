@@ -10,6 +10,7 @@ import numpy as np
 import random
 import time
 import pandas as pd
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import matplotlib.patches as mpatches
@@ -27,7 +28,7 @@ mpl.rcParams['axes.unicode_minus'] = False
 
 # ─── PAGE CONFIG ──────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="Neuro-Symbolic Collective — General Intelligence Lab",
+    page_title="Latent-Inference-Manifold — General Intelligence Lab",
     page_icon="🌑",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -273,7 +274,7 @@ def _answer_grid(task: ARCTask, snap: dict) -> np.ndarray | None:
 
 # ─── SIDEBAR ──────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("##  Neuro-Symbolic Collective")
+    st.markdown("## Latent-Inference-Manifold")
     st.caption(f"Session seed `{st.session_state.seed}`")
     st.divider()
 
@@ -334,7 +335,7 @@ with st.sidebar:
         )
 
 # ─── HEADER ───────────────────────────────────────────────────────────────────
-st.markdown("#  The Neuro-Symbolic Collective")
+st.markdown("# Latent-Inference-Manifold")
 st.markdown("**9-Agent General Intelligence Research System — Inference-Time Discovery on ARC-General Intelligence-2**")
 
 mc = st.columns(4)
