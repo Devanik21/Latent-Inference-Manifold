@@ -1250,8 +1250,8 @@ with tab7:
                 ax.scatter(idx2, sk.get("usage_count", 0), color=origc, s=100,
                            edgecolors="#1c2133", linewidths=0.5, zorder=4)
                 ax.vlines(idx2, 0, sk.get("usage_count", 0), color=origc, linewidth=1, alpha=0.5)
-            ax.set_xticks(range(len(dsl_skills)))
-            ax.set_xticklabels([sk["name"][:8] for sk in dsl_skills], rotation=45, ha="right", fontsize=7, color="#94a3b8")
+            ax.set_xticks(range(len(latent_skills)))
+            ax.set_xticklabels([sk["name"][:8] for sk in latent_skills], rotation=45, ha="right", fontsize=7, color="#94a3b8")
             ax.set_ylabel("Usage Count", color="#64748b", fontsize=9)
             legend_els = [mpatches.Patch(color="#6d28d9", label="Discovered"),
                           mpatches.Patch(color="#1e40af", label="Built-in")]
@@ -1263,7 +1263,7 @@ with tab7:
             st.markdown("##### D5 · Skill Gravity Well")
             fig, ax = _obs_fig(5, 3.5)
             rng2 = np.random.default_rng(42)
-            for idx3, sk in enumerate(dsl_skills):
+            for idx3, sk in enumerate(latent_skills):
                 xp = rng2.uniform(0.1, 0.9); yp = rng2.uniform(0.1, 0.9)
                 sz = max(sk.get("usage_count", 0) * 100 + 80, 80)
                 hue2 = (idx3 / max(n_skills, 1)) % 1.0
