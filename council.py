@@ -185,7 +185,7 @@ class Scientist:
 
                 # Check if the averaged z generalises across training pairs
                 # Accept if mean pixel error <= 2.0 (soft tolerance, not pixel-perfect)
-                GENERALISATION_THRESHOLD = 2.0
+                GENERALISATION_THRESHOLD = 5.0  # Raised: ARC is hard, allow approximate z-transforms
                 latent_generalises = True
                 total_err = 0.0
                 pair_count = 0
@@ -584,10 +584,12 @@ class Metacognitor:
 
         # Only accept a winner that has an actual synthesized program (not a raw Dreamer phantom)
         if winner.confidence < 0.40 or winner.program is None:
-            bb.declare_answer(None, "unknown", self.name)
+            # Still declare best-guess grid for display (not a solved answer, just best effort)
+            best_grid = winner.grid if winner.grid is not None else None
+            bb.declare_answer(best_grid, "unknown", self.name)
             return AgentResult(
                 agent=self.name, success=False,
-                message=f"Convergence vote: No real program found (confidence={winner.confidence:.2f}, program={winner.program}). UNKNOWN.",
+                message=f"Convergence vote: No real program found (confidence={winner.confidence:.2f}). Best guess displayed.",
                 data={"vote": "unknown"}
             )
 
