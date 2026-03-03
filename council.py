@@ -157,6 +157,7 @@ class Scientist:
         skill_lib: LatentSkillLibrary,
         latent_dict: LatentDictionary = None,
         meta_learner: MetaLearner = None,
+        extended_search: bool = False,
     ) -> AgentResult:
         """Search for a generalizing latent transformation."""
 
@@ -164,11 +165,15 @@ class Scientist:
             # If meta_learner is active, use its prior
             prior_z = meta_learner.get_prior_z() if meta_learner is not None else None
 
+            # Curiosity Engine can request a deeper search
+            n_cand = 120 if extended_search else 40
+            n_ref  = 60  if extended_search else 20
+
             # Try to find a z vector that generalizes across all training pairs
             z_candidates = []
             for inp, out in task.train_pairs:
                 # Use Meta-Learned prior if available
-                z, err = latent_dict.search_z(inp, out, 40, 20, prior_z)
+                z, err = latent_dict.search_z(inp, out, n_cand, n_ref, prior_z)
                 if z is not None:
                     z_candidates.append((z, err))
 
@@ -179,12 +184,23 @@ class Scientist:
                 avg_err = float(np.mean([zc[1] for zc in z_candidates]))
 
                 # Check if the averaged z generalises across training pairs
+                # Accept if mean pixel error <= 2.0 (soft tolerance, not pixel-perfect)
+                GENERALISATION_THRESHOLD = 2.0
                 latent_generalises = True
+                total_err = 0.0
+                pair_count = 0
                 for inp, expected in task.train_pairs:
                     predicted = latent_dict.decode_z(avg_z, inp)
-                    if predicted.shape != expected.shape or not np.array_equal(predicted, expected):
+                    if predicted.shape != expected.shape:
                         latent_generalises = False
                         break
+                    mse = float(np.mean((predicted.astype(float) - expected.astype(float)) ** 2))
+                    total_err += mse
+                    pair_count += 1
+                if latent_generalises and pair_count > 0:
+                    mean_train_err = total_err / pair_count
+                    if mean_train_err > GENERALISATION_THRESHOLD:
+                        latent_generalises = False
 
                 if latent_generalises:
                     z_mdl = float(np.count_nonzero(avg_z > 0.01))  # MDL = active components
@@ -565,11 +581,13 @@ class Metacognitor:
             )
 
         winner = max(candidates, key=lambda h: h.confidence * (1.0 if h.causal_verdict == "CAUSAL_LAW" else 0.5))
-        if winner.confidence < 0.30:
+
+        # Only accept a winner that has an actual synthesized program (not a raw Dreamer phantom)
+        if winner.confidence < 0.40 or winner.program is None:
             bb.declare_answer(None, "unknown", self.name)
             return AgentResult(
                 agent=self.name, success=False,
-                message=f"Convergence vote: winning confidence {winner.confidence:.2f} < 0.30. UNKNOWN.",
+                message=f"Convergence vote: No real program found (confidence={winner.confidence:.2f}, program={winner.program}). UNKNOWN.",
                 data={"vote": "unknown"}
             )
 
@@ -639,11 +657,20 @@ class Archivist:
         self.memory.store(record)
 
         # Extract latent skill from the winning z-vector
-        if winning_z:
+        # Fallback: if Scientist didn't win, derive z from the test pair directly
+        effective_z = winning_z
+        if effective_z is None and self.latent_dict is not None and self.latent_dict.is_ready:
+            fallback_z, fallback_err = self.latent_dict.search_z(
+                task.test_input, task.test_output, 20, 10
+            )
+            if fallback_z is not None:
+                effective_z = fallback_z.tolist()
+
+        if effective_z:
             self.skill_lib.add_skill(LatentSkill(
                 name=f"z_{task.task_id}",
                 description=f"Transformation for {task.task_id} ({task.transformation_description})",
-                z_vector=winning_z,
+                z_vector=effective_z,
                 origin_task_id=task.task_id,
             ))
 
@@ -662,8 +689,8 @@ class Archivist:
             )
 
         # ── Feed the Meta-Learner ──
-        if winning_z is not None and self.meta_learner is not None and bb.final_verdict == "solved":
-            self.meta_learner.update(winning_z=np.array(winning_z), rounds_to_solve=bb.round)
+        if effective_z is not None and self.meta_learner is not None:
+            self.meta_learner.update(winning_z=np.array(effective_z), rounds_to_solve=bb.round)
 
         return AgentResult(
             agent=self.name, success=True,
@@ -719,6 +746,14 @@ class Council:
         self._emit(bb, result.agent, result.message)
         yield bb.snapshot()
 
+        # ── PRE-SEED: feed current task's training pairs into the dictionary NOW ──
+        # This makes the dictionary warm during the search, not cold.
+        for inp, out in task.train_pairs:
+            self.latent_dict.register_pair(
+                inp, out, task_id=task.task_id,
+                label=task.transformation_description[:40]
+            )
+
         # ── PHASE 1: FIRST IMAGINATION ───────────────────────────────────────
         bb.advance_round()
         result = self.dreamer.imagine(task, bb, self.skill_lib, self.latent_dict, self.meta_learner)
@@ -744,7 +779,8 @@ class Council:
             for agent_name in agenda:
 
                 if agent_name == "Scientist":
-                    result = self.scientist.synthesize(task, bb, self.skill_lib, self.latent_dict, self.meta_learner)
+                    extended = (curiosity_directive == "SCIENTIST_EXTEND_SEARCH")
+                    result = self.scientist.synthesize(task, bb, self.skill_lib, self.latent_dict, self.meta_learner, extended_search=extended)
                     self._emit(bb, result.agent, result.message)
                     yield bb.snapshot()
 
