@@ -243,7 +243,8 @@ class LatentDictionary:
     def search_z(self, task_input: np.ndarray,
                  task_output: np.ndarray,
                  n_candidates: int = 60,
-                 n_refine: int = 20) -> Tuple[Optional[np.ndarray], float]:
+                 n_refine: int = 20,
+                 prior_z: Optional[np.ndarray] = None) -> Tuple[Optional[np.ndarray], float]:
         """
         Scientist interface: find the best z that maps input → output.
 
@@ -262,6 +263,13 @@ class LatentDictionary:
 
         best_z = z_exact
         best_err = self._reconstruction_error(z_exact, task_input, task_output)
+
+        # Learning to Learn: If we have a prior, evaluate it too
+        if prior_z is not None:
+            err_prior = self._reconstruction_error(prior_z, task_input, task_output)
+            if err_prior < best_err:
+                best_err = err_prior
+                best_z = prior_z
 
         for _ in range(n_candidates):
             # Perturbation: mix exact encoding with random noise
