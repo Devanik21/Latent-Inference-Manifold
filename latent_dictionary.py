@@ -240,11 +240,7 @@ class LatentDictionary:
 
     # ── Agent Interfaces ──────────────────────────────────────────────────
 
-    def search_z(self, task_input: np.ndarray,
-                 task_output: np.ndarray,
-                 n_candidates: int = 60,
-                 n_refine: int = 20,
-                 prior_z: Optional[np.ndarray] = None) -> Tuple[Optional[np.ndarray], float]:
+    def search_z(self, task_input, task_output, n_candidates=60, n_refine=20, prior_z=None):
         """
         Scientist interface: find the best z that maps input → output.
 
@@ -304,8 +300,7 @@ class LatentDictionary:
 
         return best_z, best_err
 
-    def sample_z(self, n: int = 8, temperature: float = 1.0,
-                 prior_z: Optional[np.ndarray] = None) -> List[np.ndarray]:
+    def sample_z(self, n=8, temperature=1.0, prior_z=None):
         """
         Dreamer interface: sample n novel z vectors.
 

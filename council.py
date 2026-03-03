@@ -167,7 +167,8 @@ class Scientist:
             # Try to find a z vector that generalizes across all training pairs
             z_candidates = []
             for inp, out in task.train_pairs:
-                z, err = latent_dict.search_z(inp, out, n_candidates=40, n_refine=20, prior_z=prior_z)
+                # Use Meta-Learned prior if available
+                z, err = latent_dict.search_z(inp, out, 40, 20, prior_z)
                 if z is not None:
                     z_candidates.append((z, err))
 
