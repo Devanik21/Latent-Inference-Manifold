@@ -661,7 +661,14 @@ with tab3:
         st.markdown("**Latent Vector applied to training example:**")
         try:
             inp_ex, out_ex = task.train_pairs[0]
-            winning_z = winning_h.get("winning_z")
+            winning_z = winning_h.get("winning_z") if winning_h else None
+            
+            if winning_z is None and not winning_h:
+                for h in sorted(hypotheses, key=lambda x: x.get("confidence", 0), reverse=True):
+                    if h.get("program") == prog_str:
+                        winning_z = h.get("winning_z")
+                        break
+                        
             if winning_z:
                 z_arr = np.array(winning_z, dtype=np.float32)
                 pred_ex = st.session_state.council.latent_dict.decode_z(z_arr, inp_ex)

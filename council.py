@@ -194,6 +194,11 @@ class Scientist:
                     if predicted.shape != expected.shape:
                         latent_generalises = False
                         break
+                    
+                    if np.all(predicted == 0) and np.any(expected != 0):
+                        latent_generalises = False
+                        break
+                        
                     mse = float(np.mean((predicted.astype(float) - expected.astype(float)) ** 2))
                     total_err += mse
                     pair_count += 1
