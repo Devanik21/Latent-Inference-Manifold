@@ -284,6 +284,7 @@ class Blackboard:
             "budget_used": self.budget_used,
             "budget_remaining": self.budget_remaining,
             "final_verdict": self.final_verdict,
+            "final_answer": self.final_answer.tolist() if self.final_answer is not None else None,
             "surprise_history": self.surprise_history,
             "world_state": self.world_state.to_dict() if self.world_state else None,
             "hypothesis_stack": [h.to_dict() for h in self.hypothesis_stack],

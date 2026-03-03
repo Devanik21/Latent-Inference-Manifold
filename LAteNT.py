@@ -250,21 +250,26 @@ def _winning_program(snap: dict) -> str | None:
 
 def _answer_grid(task: ARCTask, snap: dict) -> np.ndarray | None:
     """Return the Council's predicted output grid (numpy)."""
+    # 0. Try explicit final_answer from Blackboard
+    final = snap.get("final_answer")
+    if final is not None:
+        return np.array(final, dtype=int)
+
     # 1. Try accepted hypothesis grid
     for h in snap.get("hypothesis_stack", []):
         if h.get("status") in ("accepted", "causal_law") and h.get("grid"):
             return np.array(h["grid"], dtype=int)
+    
     # 2. Try to decode the latent winning_z
     for h in snap.get("hypothesis_stack", []):
         if h.get("status") in ("accepted", "causal_law") and h.get("winning_z"):
             try:
-                z = np.array(h["winning_z"], dtype=np.float32)
                 # Note: We don't have direct access to LatentDictionary here 
-                # but if the grid was saved, it's caught in step 1.
-                # If we really need dynamic execution, we'd pass latent_dict.
+                # but we return None and let step 3 handle it.
                 pass 
             except Exception:
                 pass
+    
     # 3. Highest-confidence grid
     for h in sorted(snap.get("hypothesis_stack", []),
                     key=lambda x: x.get("confidence", 0), reverse=True):

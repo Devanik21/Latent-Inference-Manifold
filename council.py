@@ -122,7 +122,7 @@ class Dreamer:
 
             z_samples = latent_dict.sample_z(n=self.K, temperature=1.0, prior_z=prior_z)
             for k, z in enumerate(z_samples):
-                predicted = latent_dict.decode_z(z, task.train_pairs[0][0])
+                predicted = latent_dict.decode_z(z, task.test_input)
                 # Confidence inversely proportional to z norm (simpler = better)
                 z_norm = float(np.linalg.norm(z))
                 confidence = 1.0 / (1.0 + z_norm * 0.5 + k * 0.05)
