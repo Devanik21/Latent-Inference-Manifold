@@ -126,7 +126,18 @@ class Dreamer:
                 # Confidence inversely proportional to z norm (simpler = better)
                 z_norm = float(np.linalg.norm(z))
                 confidence = 1.0 / (1.0 + z_norm * 0.5 + k * 0.05)
-                bb.push_hypothesis(predicted, confidence=confidence, agent=self.name)
+                
+                # Penalize empty outputs
+                if np.all(predicted == 0):
+                    confidence = 0.01
+
+                # Generate program string
+                z_mdl = float(np.count_nonzero(z > 0.01))
+                z_str = f"z[{z_mdl:.0f} active dims, dreamer=True]"
+
+                h = bb.push_hypothesis(predicted, confidence=confidence, agent=self.name)
+                bb.update_hypothesis(h.id, winning_z=z.tolist(), program=z_str, program_mdl=z_mdl)
+                
                 generated += 1
 
         return AgentResult(
